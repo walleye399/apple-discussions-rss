@@ -7,7 +7,7 @@ const feed = create({ version: "1.0", encoding: "UTF-8" })
   .ele("rss", { version: "2.0" })
   .ele("channel")
   .ele("title").txt("Apple Discussions Japan RSS").up()
-  .ele("link").txt("https://discussionsjapan.apple.com/browse").up()
+  .ele("link").txt("https://discussionsjapan.apple.com/browse?&sortBy=dateCreatedNewest").up()
   .ele("description").txt("Unofficial RSS feed").up();
 
 items.forEach(item => {
