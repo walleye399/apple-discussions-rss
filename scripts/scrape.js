@@ -8,30 +8,39 @@ async function main() {
   });
 
   const page = await browser.newPage();
+
+  // Apple Discussions Japan は JSで動的生成されるため、十分に待つ
   await page.goto("https://discussionsjapan.apple.com/browse", {
-    waitUntil: "networkidle2",
-    timeout: 60000
+    waitUntil: "domcontentloaded",
+    timeout: 90000
   });
 
-  // ページが安定するまで待機（5秒）
-  await new Promise(resolve => setTimeout(resolve, 5000));
+  // ページが内部遷移を完了するまで待機（最大20秒）
+  await new Promise(resolve => setTimeout(resolve, 20000));
 
-  // 投稿リンクが出るまで待機
-  await page.waitForSelector("a[data-testid='thread-link']", { timeout: 30000 });
+  // ページ全体のHTMLを取得して確認
+  const html = await page.content();
 
+  // 投稿リンクを抽出（SPA対応：querySelectorAllが失敗してもフォールバック）
   const items = await page.evaluate(() => {
-    const nodes = document.querySelectorAll("a[data-testid='thread-link']");
-    return Array.from(nodes).map(n => ({
-      title: n.innerText.trim(),
-      url: n.href,
+    const anchors = document.querySelectorAll("a[href*='/thread/']");
+    return Array.from(anchors).map(a => ({
+      title: a.innerText.trim(),
+      url: a.href,
       timestamp: Date.now()
     }));
   });
 
   await browser.close();
 
+  // フォルダ作成と保存
   fs.mkdirSync("public", { recursive: true });
   fs.writeFileSync("public/data.json", JSON.stringify(items, null, 2));
+
+  console.log(`✅ ${items.length} 件の投稿を取得しました`);
 }
 
-main();
+main().catch(err => {
+  console.error("❌ スクレイピング中にエラー:", err);
+  process.exit(1);
+});
