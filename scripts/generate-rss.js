@@ -20,4 +20,4 @@ items.forEach(item => {
 });
 
 const xml = feed.end({ prettyPrint: true });
-fs.writeFileSync("public/feed.xml", xml);
+fs.writeFileSync("feed.xml", xml);
