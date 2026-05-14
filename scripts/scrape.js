@@ -10,7 +10,7 @@ async function main() {
   const page = await browser.newPage();
 
   // Apple Discussions Japan は JSで動的生成されるため、十分に待つ
-  await page.goto("https://discussionsjapan.apple.com/browse", {
+  await page.goto("https://discussionsjapan.apple.com/browse?&sortBy=dateCreatedNewest", {
     waitUntil: "domcontentloaded",
     timeout: 90000
   });
