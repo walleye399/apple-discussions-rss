@@ -13,6 +13,12 @@ async function main() {
     timeout: 60000
   });
 
+  // ページが内部ナビゲーションを完了するまで待つ
+  await page.waitForTimeout(5000);
+
+  // 投稿リンクが出るまで待機
+  await page.waitForSelector("a[data-testid='thread-link']", { timeout: 30000 });
+
   const items = await page.evaluate(() => {
     const nodes = document.querySelectorAll("a[data-testid='thread-link']");
     return Array.from(nodes).map(n => ({
@@ -24,6 +30,7 @@ async function main() {
 
   await browser.close();
 
+  fs.mkdirSync("public", { recursive: true });
   fs.writeFileSync("public/data.json", JSON.stringify(items, null, 2));
 }
 
