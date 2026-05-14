@@ -9,19 +9,16 @@ async function main() {
 
   const page = await browser.newPage();
 
-  // Apple Discussions Japan は JSで動的生成されるため、十分に待つ
+  // 新しい投稿順に並べ替えたURL
   await page.goto("https://discussionsjapan.apple.com/browse?&sortBy=dateCreatedNewest", {
     waitUntil: "domcontentloaded",
     timeout: 90000
   });
 
-  // ページが内部遷移を完了するまで待機（最大20秒）
+  // SPA の内部遷移待ち
   await new Promise(resolve => setTimeout(resolve, 20000));
 
-  // ページ全体のHTMLを取得して確認
-  const html = await page.content();
-
-  // 投稿リンクを抽出（SPA対応：querySelectorAllが失敗してもフォールバック）
+  // スレッドURLを抽出
   const items = await page.evaluate(() => {
     const anchors = document.querySelectorAll("a[href*='/thread/']");
     return Array.from(anchors).map(a => ({
@@ -33,14 +30,11 @@ async function main() {
 
   await browser.close();
 
-  // フォルダ作成と保存
-  fs.mkdirSync("public", { recursive: true });
-  fs.writeFileSync("public/data.json", JSON.stringify(items, null, 2));
-
-  console.log(`✅ ${items.length} 件の投稿を取得しました`);
+  fs.writeFileSync("feed.json", JSON.stringify(items, null, 2));
+  console.log(`取得件数: ${items.length}`);
 }
 
 main().catch(err => {
-  console.error("❌ スクレイピング中にエラー:", err);
+  console.error("スクレイピングエラー:", err);
   process.exit(1);
 });
