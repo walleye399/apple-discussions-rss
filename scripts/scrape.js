@@ -13,8 +13,8 @@ async function main() {
     timeout: 60000
   });
 
-  // ページが内部ナビゲーションを完了するまで待つ
-  await page.waitForTimeout(5000);
+  // ページが安定するまで待機（5秒）
+  await new Promise(resolve => setTimeout(resolve, 5000));
 
   // 投稿リンクが出るまで待機
   await page.waitForSelector("a[data-testid='thread-link']", { timeout: 30000 });
