@@ -1,7 +1,7 @@
 import fs from "fs";
 import { create } from "xmlbuilder2";
 
-const items = JSON.parse(fs.readFileSync("public/data.json", "utf-8"));
+const items = JSON.parse(fs.readFileSync("feed.json", "utf-8"));
 
 const feed = create({ version: "1.0", encoding: "UTF-8" })
   .ele("rss", { version: "2.0" })
@@ -15,6 +15,7 @@ items.forEach(item => {
     .ele("item")
     .ele("title").txt(item.title).up()
     .ele("link").txt(item.url).up()
+    .ele("guid", { isPermaLink: "true" }).txt(item.url).up()  // ← これが重複防止の決定打
     .ele("pubDate").txt(new Date(item.timestamp).toUTCString()).up()
     .up();
 });
