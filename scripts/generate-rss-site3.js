@@ -1,5 +1,5 @@
-const fs = require("fs");
-const { create } = require("xmlbuilder2");
+import fs from "fs";
+import { create } from "xmlbuilder2";
 
 const items = JSON.parse(fs.readFileSync("site3.json", "utf-8"));
 
