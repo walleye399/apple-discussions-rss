@@ -8,10 +8,15 @@ const browser = await puppeteer.launch({
 
 const page = await browser.newPage();
 
+// タイムアウト延長（重要）
+await page.setDefaultNavigationTimeout(120000);
+await page.setDefaultTimeout(120000);
+
 await page.goto("https://kuruma-news.jp/archive", {
-  waitUntil: "networkidle0"
+  waitUntil: "networkidle2"   // networkidle0 は重いサイトで固まりやすい
 });
 
+// くるまニュースの構造に合わせたセレクタ
 const items = await page.evaluate(() => {
   return Array.from(document.querySelectorAll("article.archive-article")).map(el => ({
     title: el.querySelector("h2.archive-article__title")?.innerText || "",
