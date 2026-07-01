@@ -4,5 +4,11 @@
     <title>ライブドアブログ ヘッドライン</title>
     <link>https://blog.livedoor.com/headline/</link>
     <description>ライブドアブログ ヘッドライン 最新記事</description>
+    <item>
+      <title/>
+      <link/>
+      <guid/>
+      <pubDate/>
+    </item>
   </channel>
 </rss>
