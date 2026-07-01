@@ -7,17 +7,18 @@ const browser = await puppeteer.launch({
 });
 
 const page = await browser.newPage();
+await page.setDefaultNavigationTimeout(120000);
 
 await page.goto(
   "https://discussionsjapan.apple.com/browse?sortBy=dateCreatedNewest",
-  { waitUntil: "networkidle0" }
+  { waitUntil: "networkidle2" }
 );
 
 const items = await page.evaluate(() => {
-  return Array.from(document.querySelectorAll(".discussion-item")).map(el => ({
-    title: el.querySelector(".title")?.innerText || "",
-    link: el.querySelector("a")?.href || "",
-    date: el.querySelector(".date")?.innerText || ""
+  return Array.from(document.querySelectorAll('div[data-testid="topic-list-item"]')).map(el => ({
+    title: el.querySelector('a[data-testid="topic-title-link"]')?.innerText || "",
+    link: el.querySelector('a[data-testid="topic-title-link"]')?.href || "",
+    date: el.querySelector('time[data-testid="topic-timestamp"]')?.innerText || ""
   }));
 });
 
