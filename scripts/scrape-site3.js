@@ -8,22 +8,23 @@ async function main() {
   });
 
   const page = await browser.newPage();
-  await page.setDefaultNavigationTimeout(120000);
 
   await page.goto("https://blog.livedoor.com/headline/", {
     waitUntil: "domcontentloaded",
     timeout: 90000
   });
 
-  // 記事抽出（HTML構造に完全一致）
+  // Apple と同じ「確実に DOM が揃うまで待つ」方式
+  await new Promise(resolve => setTimeout(resolve, 20000));
+
   const items = await page.evaluate(() => {
     return Array.from(document.querySelectorAll("div.headline")).map(el => {
       const a = el.querySelector("h3.headline-title a");
-      const title = a?.innerText.trim() || "";
-      const link = a?.href || "";
-      const date = el.querySelector("div.headline-date")?.innerText.trim() || "";
-
-      return { title, link, date };
+      return {
+        title: a?.innerText.trim() || "",
+        link: a?.href || "",
+        date: el.querySelector("div.headline-date")?.innerText.trim() || ""
+      };
     });
   });
 
