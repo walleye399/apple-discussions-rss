@@ -14,16 +14,17 @@ async function main() {
     timeout: 90000
   });
 
-  // GitHub Actions の低速環境対策
+  // GitHub Actions の低速環境対策（Apple と同じ）
   await new Promise(resolve => setTimeout(resolve, 20000));
 
   const items = await page.evaluate(() => {
-    return Array.from(document.querySelectorAll("div.headline h3.headline-title a")).map(a => {
-      const dateEl = a.closest("div.headline")?.querySelector("div.headline-date");
+    return Array.from(document.querySelectorAll("section div ul li a div")).map(div => {
+      const titleEl = div.querySelector("span.comment");
+      const linkEl = div.closest("a");
       return {
-        title: a.innerText.trim(),
-        link: a.href,
-        date: dateEl?.innerText.trim() || new Date().toUTCString()
+        title: titleEl?.innerText.trim() || "",
+        link: linkEl?.href || "",
+        date: new Date().toUTCString()
       };
     });
   });
