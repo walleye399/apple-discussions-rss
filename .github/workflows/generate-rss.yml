@@ -4,8 +4,6 @@ permissions:
 name: Generate RSS
 
 on:
-  schedule:
-    - cron: "0 * * * *"  # 毎時0分（1時間ごと）
   workflow_dispatch:
 
 jobs:
@@ -26,11 +24,23 @@ jobs:
           npm install puppeteer
           npm install xmlbuilder2
 
-      - name: Run scraper
-        run: node scripts/scrape.js
+      - name: Scrape site 1
+        run: node scripts/scrape-site1.js
 
-      - name: Generate RSS
-        run: node scripts/generate-rss.js
+      - name: Scrape site 2
+        run: node scripts/scrape-site2.js
+
+      - name: Scrape site 3
+        run: node scripts/scrape-site3.js
+
+      - name: Generate RSS site 1
+        run: node scripts/generate-rss-site1.js
+
+      - name: Generate RSS site 2
+        run: node scripts/generate-rss-site2.js
+
+      - name: Generate RSS site 3
+        run: node scripts/generate-rss-site3.js
 
       - name: Commit & Push
         env:
@@ -38,6 +48,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add feed.xml
-          git commit -m "Update RSS" || echo "No changes"
+          git add feed-site1.xml feed-site2.xml feed-site3.xml
+          git commit -m "Update RSS feeds" || echo "No changes"
           git push origin HEAD:main
