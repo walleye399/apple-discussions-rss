@@ -8,22 +8,23 @@ async function main() {
   });
 
   const page = await browser.newPage();
-  await page.setDefaultNavigationTimeout(120000);
 
   await page.goto("https://kuruma-news.jp/archive", {
     waitUntil: "domcontentloaded",
     timeout: 90000
   });
 
-  // 記事リストを抽出（HTML構造に完全一致）
+  // Apple と同じ「確実に DOM が揃うまで待つ」方式
+  await new Promise(resolve => setTimeout(resolve, 20000));
+
   const items = await page.evaluate(() => {
     return Array.from(document.querySelectorAll("li.p-archive__list-item")).map(el => {
       const a = el.querySelector("a.p-archive__list-item__link");
-      const title = el.querySelector("h3.p-archive__list-item__title")?.innerText.trim() || "";
-      const link = a?.href || "";
-      const date = el.querySelector("time.p-archive__list-item__date")?.innerText.trim() || "";
-
-      return { title, link, date };
+      return {
+        title: el.querySelector("h3.p-archive__list-item__title")?.innerText.trim() || "",
+        link: a?.href || "",
+        date: el.querySelector("time.p-archive__list-item__date")?.innerText.trim() || ""
+      };
     });
   });
 
