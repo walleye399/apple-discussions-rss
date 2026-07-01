@@ -14,15 +14,19 @@ async function main() {
     timeout: 90000
   });
 
-  // GitHub Actions の低速環境対策（Apple と同じ）
+  // GitHub Actions の低速環境対策
   await new Promise(resolve => setTimeout(resolve, 20000));
 
   const items = await page.evaluate(() => {
     return Array.from(document.querySelectorAll("section div ul li a div")).map(div => {
       const titleEl = div.querySelector("span.comment");
       const linkEl = div.closest("a");
+      const title =
+        titleEl?.innerText.trim() ||
+        div.innerText.trim() || // フォールバック
+        "(タイトルなし)";
       return {
-        title: titleEl?.innerText.trim() || "",
+        title,
         link: linkEl?.href || "",
         date: new Date().toUTCString()
       };
