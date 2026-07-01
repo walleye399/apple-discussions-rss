@@ -1,22 +1,24 @@
-const puppeteer = require("puppeteer");
-const fs = require("fs");
+import puppeteer from "puppeteer";
+import fs from "fs";
 
-(async () => {
-  const browser = await puppeteer.launch({ headless: "new" });
-  const page = await browser.newPage();
+const browser = await puppeteer.launch({
+  headless: "new",
+  args: ["--no-sandbox", "--disable-setuid-sandbox"]
+});
 
-  await page.goto("https://kuruma-news.jp/archive", {
-    waitUntil: "networkidle0"
-  });
+const page = await browser.newPage();
 
-  const items = await page.evaluate(() => {
-    return Array.from(document.querySelectorAll("article.archive-article")).map(el => ({
-      title: el.querySelector("h2.archive-article__title")?.innerText || "",
-      link: el.querySelector("a.archive-article__link")?.href || "",
-      date: el.querySelector("time.archive-article__date")?.innerText || ""
-    }));
-  });
+await page.goto("https://kuruma-news.jp/archive", {
+  waitUntil: "networkidle0"
+});
 
-  fs.writeFileSync("site2.json", JSON.stringify(items, null, 2));
-  await browser.close();
-})();
+const items = await page.evaluate(() => {
+  return Array.from(document.querySelectorAll("article.archive-article")).map(el => ({
+    title: el.querySelector("h2.archive-article__title")?.innerText || "",
+    link: el.querySelector("a.archive-article__link")?.href || "",
+    date: el.querySelector("time.archive-article__date")?.innerText || ""
+  }));
+});
+
+fs.writeFileSync("site2.json", JSON.stringify(items, null, 2));
+await browser.close();
