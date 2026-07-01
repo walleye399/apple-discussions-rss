@@ -7,16 +7,17 @@ const browser = await puppeteer.launch({
 });
 
 const page = await browser.newPage();
+await page.setDefaultNavigationTimeout(120000);
 
 await page.goto("https://blog.livedoor.com/headline/", {
-  waitUntil: "networkidle0"
+  waitUntil: "networkidle2"
 });
 
 const items = await page.evaluate(() => {
-  return Array.from(document.querySelectorAll("div.article")).map(el => ({
-    title: el.querySelector("h3.article-title")?.innerText || "",
-    link: el.querySelector("a.article-title-link")?.href || "",
-    date: el.querySelector("span.article-date")?.innerText || ""
+  return Array.from(document.querySelectorAll("div.headline")).map(el => ({
+    title: el.querySelector("h3.headline-title a")?.innerText || "",
+    link: el.querySelector("h3.headline-title a")?.href || "",
+    date: el.querySelector("div.headline-date")?.innerText || ""
   }));
 });
 
