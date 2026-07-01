@@ -18,19 +18,27 @@ async function main() {
   await new Promise(resolve => setTimeout(resolve, 20000));
 
   const items = await page.evaluate(() => {
-    return Array.from(document.querySelectorAll("section div ul li a div")).map(div => {
+    const seenLinks = new Set();
+    const results = [];
+
+    Array.from(document.querySelectorAll("section div ul li a div")).forEach(div => {
       const titleEl = div.querySelector("span.comment");
       const linkEl = div.closest("a");
-      const title =
-        titleEl?.innerText.trim() ||
-        div.innerText.trim() || // フォールバック
-        "(タイトルなし)";
-      return {
+      const title = titleEl?.innerText.trim() || "";
+      const link = linkEl?.href || "";
+
+      // タイトルが空 or リンク重複ならスキップ
+      if (!title || seenLinks.has(link)) return;
+
+      seenLinks.add(link);
+      results.push({
         title,
-        link: linkEl?.href || "",
+        link,
         date: new Date().toUTCString()
-      };
+      });
     });
+
+    return results;
   });
 
   await browser.close();
