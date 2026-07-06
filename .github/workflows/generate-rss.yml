@@ -17,7 +17,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 24   # ← ここを修正！
+          node-version: 24   
 
       - name: Install dependencies
         run: |
@@ -25,22 +25,13 @@ jobs:
           npm install xmlbuilder2
 
       - name: Scrape site 1
-        run: node scripts/scrape-site1.js
+        run: node scripts/site1.js
 
       - name: Scrape site 2
-        run: node scripts/scrape-site2.js
+        run: node scripts/site2.js
 
       - name: Scrape site 3
-        run: node scripts/scrape-site3.js
-
-      - name: Generate RSS site 1
-        run: node scripts/generate-rss-site1.js
-
-      - name: Generate RSS site 2
-        run: node scripts/generate-rss-site2.js
-
-      - name: Generate RSS site 3
-        run: node scripts/generate-rss-site3.js
+        run: node scripts/site3.js
 
       - name: Commit & Push
         env:
