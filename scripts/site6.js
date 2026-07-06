@@ -15,27 +15,30 @@ async function main() {
     timeout: 90000
   });
 
+  // GitHub Actions の低速環境対策
   await new Promise(resolve => setTimeout(resolve, 20000));
 
   const items = await page.evaluate(() => {
     const seen = new Set();
     const results = [];
 
-    Array.from(document.querySelectorAll("div div div div div div div a")).forEach(a => {
-      const title = a.innerText.trim();
-      const link = a.href;
+    // 右側の記事部分のみ抽出
+    document.querySelectorAll("main div section div ul li").forEach(li => {
+      const a = li.querySelector("h3 a");
+      const desc = li.querySelector("p");
+      const title = a?.innerText.trim();
+      const link = a?.href;
+      const summary = desc?.innerText.trim();
 
-      // カテゴリ見出しを除外
-      const ignoreList = ["ビューティー・ヘルス", "ベビー・キッズ", "ホビー", "住宅設備"];
-      if (!title || ignoreList.includes(title)) return;
-
-      // 重複リンクを除外
+      // 不要カテゴリや空タイトルを除外
+      if (!title || !link) return;
       if (seen.has(link)) return;
       seen.add(link);
 
       results.push({
         title,
         link,
+        description: summary,
         date: new Date().toUTCString()
       });
     });
@@ -45,6 +48,7 @@ async function main() {
 
   await browser.close();
 
+  // RSS生成
   const feed = create({ version: "1.0" })
     .ele("rss", { version: "2.0" })
     .ele("channel")
@@ -53,12 +57,13 @@ async function main() {
     .ele("description").txt("価格.com 新着情報 最新記事").up();
 
   items.forEach(item => {
-    feed.ele("item")
-      .ele("title").txt(item.title).up()
-      .ele("link").txt(item.link).up()
-      .ele("guid").txt(item.link).up()
-      .ele("pubDate").txt(item.date).up()
-      .up();
+    const entry = feed.ele("item");
+    entry.ele("title").txt(item.title).up();
+    entry.ele("link").txt(item.link).up();
+    entry.ele("guid").txt(item.link).up();
+    entry.ele("description").txt(item.description || "").up();
+    entry.ele("pubDate").txt(item.date).up();
+    entry.up();
   });
 
   const xml = feed.end({ prettyPrint: true });
