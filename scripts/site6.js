@@ -15,26 +15,35 @@ async function main() {
     timeout: 120000
   });
 
-  // Cloudflare遅延対策：最大90秒待機
-  await new Promise(resolve => setTimeout(resolve, 90000));
+  // Cloudflare対策：短い待機（5秒）
+  await new Promise(resolve => setTimeout(resolve, 5000));
 
   let items = [];
 
   try {
-    // 右側の記事リストを優先的に取得
-    await page.waitForSelector("section ul li h3 a", { timeout: 30000 });
+    // 右側の記事リストを優先
+    await page.waitForSelector("section ul li h3 a", { timeout: 5000 });
+
     items = await page.evaluate(() => {
       const seen = new Set();
       const results = [];
+
       document.querySelectorAll("section ul li").forEach(li => {
         const a = li.querySelector("h3 a");
         const desc = li.querySelector("p");
+
         const title = a?.innerText.trim();
         const link = a?.href;
         const summary = desc?.innerText.trim();
+
         if (!title || !link) return;
+
+        // 末尾が article/ のものを除外
+        if (link.endsWith("article/")) return;
+
         if (seen.has(link)) return;
         seen.add(link);
+
         results.push({
           title,
           link,
@@ -42,26 +51,36 @@ async function main() {
           date: new Date().toUTCString()
         });
       });
+
       return results;
     });
   } catch {
-    // フォールバック：politepol の XPath 構造で取得
+    // フォールバック：politepol のセレクタ
     console.log("Fallback: using politepol selector");
+
     items = await page.evaluate(() => {
       const seen = new Set();
       const results = [];
+
       document.querySelectorAll("div div div div div div div a").forEach(a => {
         const title = a?.innerText.trim();
         const link = a?.href;
+
         if (!title || !link) return;
+
+        // 末尾が article/ のものを除外
+        if (link.endsWith("article/")) return;
+
         if (seen.has(link)) return;
         seen.add(link);
+
         results.push({
           title,
           link,
           date: new Date().toUTCString()
         });
       });
+
       return results;
     });
   }
