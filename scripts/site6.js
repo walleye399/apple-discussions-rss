@@ -15,22 +15,26 @@ async function main() {
     timeout: 90000
   });
 
-  // ページが完全に描画されるまで待機
+  // GitHub Actions の低速環境対策
   await new Promise(resolve => setTimeout(resolve, 20000));
 
   const items = await page.evaluate(() => {
     const seen = new Set();
     const results = [];
 
-    // 記事リスト部分のみ抽出
+    // 右側の記事だけ抽出（カテゴリ増減に完全対応）
     document.querySelectorAll("section ul li").forEach(li => {
       const a = li.querySelector("h3 a");
       const desc = li.querySelector("p");
+
       const title = a?.innerText.trim();
       const link = a?.href;
       const summary = desc?.innerText.trim();
 
+      // 記事として成立していないものは除外
       if (!title || !link) return;
+
+      // 重複リンクを除外
       if (seen.has(link)) return;
       seen.add(link);
 
@@ -51,18 +55,18 @@ async function main() {
   const feed = create({ version: "1.0" })
     .ele("rss", { version: "2.0" })
     .ele("channel")
-    .ele("title").txt("価格.com 新着情報").up()
-    .ele("link").txt("https://kakaku.com/whatsnew/").up()
-    .ele("description").txt("価格.com 新着情報 最新記事").up();
+      .ele("title").txt("価格.com 新着情報").up()
+      .ele("link").txt("https://kakaku.com/whatsnew/").up()
+      .ele("description").txt("価格.com 新着情報 最新記事").up();
 
   items.forEach(item => {
-    feed.ele("item")
-      .ele("title").txt(item.title).up()
-      .ele("link").txt(item.link).up()
-      .ele("guid").txt(item.link).up()
-      .ele("description").txt(item.description || "").up()
-      .ele("pubDate").txt(item.date).up()
-      .up();
+    const entry = feed.ele("item");
+    entry.ele("title").txt(item.title).up();
+    entry.ele("link").txt(item.link).up();
+    entry.ele("guid").txt(item.link).up();
+    entry.ele("description").txt(item.description || "").up();
+    entry.ele("pubDate").txt(item.date).up();
+    entry.up();
   });
 
   const xml = feed.end({ prettyPrint: true });
