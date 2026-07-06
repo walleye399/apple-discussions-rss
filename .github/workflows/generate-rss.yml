@@ -24,13 +24,12 @@ jobs:
           npm install puppeteer
           npm install xmlbuilder2
 
-- name: Run all site scripts
-  run: |
-    for file in scripts/*.js; do
-      echo "Running $file"
-      node "$file"
-    done
-
+      - name: Run all site scripts
+        run: |
+          for file in scripts/*.js; do
+            echo "Running $file"
+            node "$file"
+          done
 
       - name: Commit & Push
         env:
@@ -38,6 +37,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add feed-site1.xml feed-site2.xml feed-site3.xml
+          git add feed-site*.xml
           git commit -m "Update RSS feeds" || echo "No changes"
           git push origin HEAD:main
