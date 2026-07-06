@@ -15,19 +15,16 @@ async function main() {
     timeout: 90000
   });
 
-  // GitHub Actions の低速環境対策（他サイトと同じ）
+  // GitHub Actions の低速環境対策
   await new Promise(resolve => setTimeout(resolve, 20000));
 
   // 記事タイトルとリンクを抽出
   const items = await page.evaluate(() => {
-    return Array.from(document.querySelectorAll("div div div div div div div div")).map(div => {
-      const a = div.querySelector("a");
-      return {
-        title: a?.innerText.trim() || div.innerText.trim(),
-        link: a?.href || "",
-        date: new Date().toUTCString()
-      };
-    });
+    return Array.from(document.querySelectorAll("div div div div div div div a")).map(a => ({
+      title: a.innerText.trim(),
+      link: a.href,
+      date: new Date().toUTCString()
+    }));
   });
 
   await browser.close();
