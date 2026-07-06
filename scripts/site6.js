@@ -15,21 +15,36 @@ async function main() {
     timeout: 90000
   });
 
-  // GitHub Actions の低速環境対策
   await new Promise(resolve => setTimeout(resolve, 20000));
 
-  // 記事タイトルとリンクを抽出
   const items = await page.evaluate(() => {
-    return Array.from(document.querySelectorAll("div div div div div div div a")).map(a => ({
-      title: a.innerText.trim(),
-      link: a.href,
-      date: new Date().toUTCString()
-    }));
+    const seen = new Set();
+    const results = [];
+
+    Array.from(document.querySelectorAll("div div div div div div div a")).forEach(a => {
+      const title = a.innerText.trim();
+      const link = a.href;
+
+      // カテゴリ見出しを除外
+      const ignoreList = ["ビューティー・ヘルス", "ベビー・キッズ", "ホビー", "住宅設備"];
+      if (!title || ignoreList.includes(title)) return;
+
+      // 重複リンクを除外
+      if (seen.has(link)) return;
+      seen.add(link);
+
+      results.push({
+        title,
+        link,
+        date: new Date().toUTCString()
+      });
+    });
+
+    return results;
   });
 
   await browser.close();
 
-  // RSS生成
   const feed = create({ version: "1.0" })
     .ele("rss", { version: "2.0" })
     .ele("channel")
