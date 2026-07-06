@@ -11,18 +11,17 @@ async function main() {
   const page = await browser.newPage();
 
   await page.goto("https://kakaku.com/whatsnew/", {
-    waitUntil: "domcontentloaded",
-    timeout: 90000
+    waitUntil: "networkidle2", // JS描画完了まで待つ
+    timeout: 120000
   });
 
-  // GitHub Actions の低速環境対策
-  await new Promise(resolve => setTimeout(resolve, 20000));
+  // ページが完全に描画されるまで待機（右側の記事リストが出るまで）
+  await page.waitForSelector("section ul li h3 a", { timeout: 60000 });
 
   const items = await page.evaluate(() => {
     const seen = new Set();
     const results = [];
 
-    // 右側の記事だけ抽出（カテゴリ増減に完全対応）
     document.querySelectorAll("section ul li").forEach(li => {
       const a = li.querySelector("h3 a");
       const desc = li.querySelector("p");
@@ -31,10 +30,7 @@ async function main() {
       const link = a?.href;
       const summary = desc?.innerText.trim();
 
-      // 記事として成立していないものは除外
       if (!title || !link) return;
-
-      // 重複リンクを除外
       if (seen.has(link)) return;
       seen.add(link);
 
