@@ -24,14 +24,13 @@ jobs:
           npm install puppeteer
           npm install xmlbuilder2
 
-      - name: Scrape site 1
-        run: node scripts/site1.js
+- name: Run all site scripts
+  run: |
+    for file in scripts/*.js; do
+      echo "Running $file"
+      node "$file"
+    done
 
-      - name: Scrape site 2
-        run: node scripts/site2.js
-
-      - name: Scrape site 3
-        run: node scripts/site3.js
 
       - name: Commit & Push
         env:
