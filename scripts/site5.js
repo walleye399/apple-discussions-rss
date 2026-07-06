@@ -10,29 +10,25 @@ async function main() {
 
   const page = await browser.newPage();
 
-  await page.goto("https://pr-free.jp", {
+  // Cloudflare対策：軽量ページを使う
+  await page.goto("https://pr-free.jp/list/", {
     waitUntil: "domcontentloaded",
     timeout: 90000
   });
 
-  // GitHub Actions の低速環境対策（他サイトと同じ）
-  await new Promise(resolve => setTimeout(resolve, 20000));
+  // SPAではないので待機は短くてOK
+  await new Promise(resolve => setTimeout(resolve, 5000));
 
-  // 記事タイトルとリンクを抽出
   const items = await page.evaluate(() => {
-    return Array.from(document.querySelectorAll("aside ul ul li a p")).map(p => {
-      const a = p.closest("a");
-      return {
-        title: p.innerText.trim(),
-        link: a?.href || "",
-        date: new Date().toUTCString()
-      };
-    });
+    return Array.from(document.querySelectorAll("article h2 a")).map(a => ({
+      title: a.innerText.trim(),
+      link: a.href,
+      date: new Date().toUTCString()
+    }));
   });
 
   await browser.close();
 
-  // RSS生成
   const feed = create({ version: "1.0" })
     .ele("rss", { version: "2.0" })
     .ele("channel")
@@ -56,6 +52,6 @@ async function main() {
 }
 
 main().catch(err => {
-  console.error("スクレイピングエラー (site5):", err);
+  console.error("site5 エラー:", err);
   process.exit(1);
 });
