@@ -11,39 +11,60 @@ async function main() {
   const page = await browser.newPage();
 
   await page.goto("https://kakaku.com/whatsnew/", {
-    waitUntil: "networkidle2", // JS描画完了まで待つ
+    waitUntil: "networkidle2",
     timeout: 120000
   });
 
-  // ページが完全に描画されるまで待機（右側の記事リストが出るまで）
-  await page.waitForSelector("section ul li h3 a", { timeout: 60000 });
+  // Cloudflare遅延対策：最大90秒待機
+  await new Promise(resolve => setTimeout(resolve, 90000));
 
-  const items = await page.evaluate(() => {
-    const seen = new Set();
-    const results = [];
+  let items = [];
 
-    document.querySelectorAll("section ul li").forEach(li => {
-      const a = li.querySelector("h3 a");
-      const desc = li.querySelector("p");
-
-      const title = a?.innerText.trim();
-      const link = a?.href;
-      const summary = desc?.innerText.trim();
-
-      if (!title || !link) return;
-      if (seen.has(link)) return;
-      seen.add(link);
-
-      results.push({
-        title,
-        link,
-        description: summary,
-        date: new Date().toUTCString()
+  try {
+    // 右側の記事リストを優先的に取得
+    await page.waitForSelector("section ul li h3 a", { timeout: 30000 });
+    items = await page.evaluate(() => {
+      const seen = new Set();
+      const results = [];
+      document.querySelectorAll("section ul li").forEach(li => {
+        const a = li.querySelector("h3 a");
+        const desc = li.querySelector("p");
+        const title = a?.innerText.trim();
+        const link = a?.href;
+        const summary = desc?.innerText.trim();
+        if (!title || !link) return;
+        if (seen.has(link)) return;
+        seen.add(link);
+        results.push({
+          title,
+          link,
+          description: summary,
+          date: new Date().toUTCString()
+        });
       });
+      return results;
     });
-
-    return results;
-  });
+  } catch {
+    // フォールバック：politepol の XPath 構造で取得
+    console.log("Fallback: using politepol selector");
+    items = await page.evaluate(() => {
+      const seen = new Set();
+      const results = [];
+      document.querySelectorAll("div div div div div div div a").forEach(a => {
+        const title = a?.innerText.trim();
+        const link = a?.href;
+        if (!title || !link) return;
+        if (seen.has(link)) return;
+        seen.add(link);
+        results.push({
+          title,
+          link,
+          date: new Date().toUTCString()
+        });
+      });
+      return results;
+    });
+  }
 
   await browser.close();
 
