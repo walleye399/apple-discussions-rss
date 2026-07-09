@@ -30,17 +30,14 @@ jobs:
             node "$file"
           done
 
-      - name: Save RSS to docs
+      - name: Save RSS to root
         run: |
-          mkdir -p docs
-          mv feed-site*.xml docs/
-
-          # 既に手動で作った index.html があるなら上書きしない
-          if [ ! -f docs/index.html ]; then
-            echo "<html><body><h1>RSS Feeds</h1></body></html>" > docs/index.html
+          mv feed-site*.xml ./
+          if [ ! -f index.html ]; then
+            echo "<html><body><h1>RSS Feeds</h1></body></html>" > index.html
           fi
+          ls -la
 
-          ls -la docs
 
       - name: Commit & Push
         env:
