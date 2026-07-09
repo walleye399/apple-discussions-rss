@@ -37,10 +37,11 @@ jobs:
           mkdir -p docs
           mv feed-site*.xml docs/
 
-          # Jekyllを無効化してエラー防止
-          echo "" > docs/.nojekyll
+          # Jekyllが必要とする最低限のindex.htmlを作成
+          echo "<html><body><h1>RSS Feeds</h1></body></html>" > docs/index.html
 
           ls -la docs
+
 
 
       - name: Commit & Push
