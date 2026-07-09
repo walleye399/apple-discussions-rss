@@ -3,7 +3,6 @@ permissions:
 
 name: Generate RSS
 
-
 on:
   workflow_dispatch:
 
@@ -22,8 +21,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          npm install puppeteer
-          npm install xmlbuilder2
+          npm install puppeteer xmlbuilder2
 
       - name: Run all site scripts
         run: |
@@ -37,12 +35,12 @@ jobs:
           mkdir -p docs
           mv feed-site*.xml docs/
 
-          # Jekyllが必要とする最低限のindex.htmlを作成
-          echo "<html><body><h1>RSS Feeds</h1></body></html>" > docs/index.html
+          # 既に手動で作った index.html があるなら上書きしない
+          if [ ! -f docs/index.html ]; then
+            echo "<html><body><h1>RSS Feeds</h1></body></html>" > docs/index.html
+          fi
 
           ls -la docs
-
-
 
       - name: Commit & Push
         env:
