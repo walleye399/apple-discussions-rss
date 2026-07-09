@@ -10,7 +10,7 @@ function runScript(file, retry = 0) {
   return new Promise((resolve) => {
     const child = spawn("node", [file], { stdio: "inherit" });
 
-    child.on("close", (code) => {
+    child.on("exit", (code) => {
       if (code === 0) {
         return resolve(true);
       }
@@ -39,7 +39,6 @@ async function main() {
     }
   }
 
-  // Chrome のゾンビプロセスを強制終了
   try {
     execSync("pkill chrome || true");
   } catch {}
