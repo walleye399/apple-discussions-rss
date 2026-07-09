@@ -10,6 +10,7 @@ function runScript(file, retry = 0) {
   return new Promise((resolve) => {
     const child = spawn("node", [file], { stdio: "inherit" });
 
+    // close ではなく exit を使う（重要）
     child.on("exit", (code) => {
       if (code === 0) {
         return resolve(true);
