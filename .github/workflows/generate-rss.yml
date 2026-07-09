@@ -34,19 +34,14 @@ jobs:
 
       - name: Save RSS to docs
         run: |
-          echo "Creating docs directory..."
           mkdir -p docs
-
-          echo "Moving RSS files..."
           mv feed-site*.xml docs/
 
-          echo "Copying index.html if exists..."
-          if [ -f index.html ]; then
-            cp index.html docs/
-          fi
+          # Jekyllを無効化してエラー防止
+          echo "" > docs/.nojekyll
 
-          echo "Listing docs directory..."
           ls -la docs
+
 
       - name: Commit & Push
         env:
