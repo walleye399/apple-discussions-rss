@@ -1,2 +1,3 @@
 - name: Run all site scripts
   run: node scripts/run-all.js
+
