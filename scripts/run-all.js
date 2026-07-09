@@ -10,6 +10,7 @@ function runScript(file, retry = 0) {
   return new Promise((resolve) => {
     exec(`node ${file}`, (error, stdout, stderr) => {
       if (!error) {
+        console.log(stdout); // ← 追加
         console.log(`${file} 完了`);
         return resolve(true);
       }
