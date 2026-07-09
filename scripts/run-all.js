@@ -1,5 +1,5 @@
 import fs from "fs";
-import { exec, execSync } from "child_process";
+import { spawn, execSync } from "child_process";
 
 const MAX_RETRY = {
   default: 1,
@@ -8,14 +8,12 @@ const MAX_RETRY = {
 
 function runScript(file, retry = 0) {
   return new Promise((resolve) => {
-    exec(`node ${file}`, (error, stdout, stderr) => {
-      if (!error) {
-        console.log(stdout);
-        console.log(`${file} 完了`);
+    const child = spawn("node", [file], { stdio: "inherit" });
+
+    child.on("close", (code) => {
+      if (code === 0) {
         return resolve(true);
       }
-
-      console.error(`${file} エラー (retry=${retry}):`, stderr);
 
       const base = file.replace("scripts/", "").replace(".js", "");
       const limit = MAX_RETRY[base] ?? MAX_RETRY.default;
@@ -41,7 +39,7 @@ async function main() {
     }
   }
 
-  // 🔥 Chrome のゾンビプロセスを強制終了（exit code 143 対策）
+  // Chrome のゾンビプロセスを強制終了
   try {
     execSync("pkill chrome || true");
   } catch {}
