@@ -1,17 +1,16 @@
 import fs from "fs";
-import { exec } from "child_process";
+import { exec, execSync } from "child_process";
 
 const MAX_RETRY = {
   default: 1,
   site5: 3
 };
 
-
 function runScript(file, retry = 0) {
   return new Promise((resolve) => {
     exec(`node ${file}`, (error, stdout, stderr) => {
       if (!error) {
-        console.log(stdout); // ← 追加
+        console.log(stdout);
         console.log(`${file} 完了`);
         return resolve(true);
       }
@@ -41,6 +40,11 @@ async function main() {
       process.exit(1);
     }
   }
+
+  // 🔥 Chrome のゾンビプロセスを強制終了（exit code 143 対策）
+  try {
+    execSync("pkill chrome || true");
+  } catch {}
 }
 
 main();
