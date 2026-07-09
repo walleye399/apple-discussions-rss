@@ -6,6 +6,7 @@ const MAX_RETRY = {
   site5: 3
 };
 
+
 function runScript(file, retry = 0) {
   return new Promise((resolve) => {
     exec(`node ${file}`, (error, stdout, stderr) => {
