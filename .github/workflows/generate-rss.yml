@@ -30,9 +30,8 @@ jobs:
             node "$file"
           done
 
-      - name: Save RSS to root
+      - name: Ensure index.html exists
         run: |
-          mv feed-site*.xml ./
           if [ ! -f index.html ]; then
             echo "<html><body><h1>RSS Feeds</h1></body></html>" > index.html
           fi
