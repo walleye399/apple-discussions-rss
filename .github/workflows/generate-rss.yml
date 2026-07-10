@@ -1,15 +1,14 @@
+permissions:
+  contents: write
+
 name: Generate RSS
 
 on:
   workflow_dispatch:
 
-permissions:
-  contents: write
-
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
 
     steps:
       - name: Checkout
@@ -29,7 +28,18 @@ jobs:
           npx puppeteer browsers install chrome
 
       - name: Run all site scripts
-        run: node scripts/run-all.js
+        run: |
+          for file in scripts/*.js; do
+            echo "Running $file"
+            node "$file"
+          done
+
+      - name: Ensure index.html exists
+        run: |
+          if [ ! -f index.html ]; then
+            echo "<html><body><h1>RSS Feeds</h1></body></html>" > index.html
+          fi
+          ls -la
 
       - name: Commit & Push
         env:
