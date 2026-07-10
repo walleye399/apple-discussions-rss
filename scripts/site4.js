@@ -8,52 +8,51 @@ async function main() {
     args: ["--no-sandbox", "--disable-setuid-sandbox"]
   });
 
-  try {
-    const page = await browser.newPage();
+  const page = await browser.newPage();
 
-    await page.goto("https://digitalpr.jp", {
-      waitUntil: "domcontentloaded",
-      timeout: 90000
-    });
+  await page.goto("https://digitalpr.jp", {
+    waitUntil: "domcontentloaded",
+    timeout: 90000
+  });
 
-    // GitHub Actions の低速環境対策
-    await new Promise(resolve => setTimeout(resolve, 20000));
+  // GitHub Actions の低速環境対策（他サイトと同じ）
+  await new Promise(resolve => setTimeout(resolve, 20000));
 
-    const items = await page.evaluate(() => {
-      return Array.from(document.querySelectorAll("article h2 a")).map(a => ({
-        title: a.innerText.trim(),
-        link: a.href,
-        date: new Date().toUTCString()
-      }));
-    });
+  // 記事タイトルとリンクを抽出
+  const items = await page.evaluate(() => {
+    return Array.from(document.querySelectorAll("article h2 a")).map(a => ({
+      title: a.innerText.trim(),
+      link: a.href,
+      date: new Date().toUTCString()
+    }));
+  });
 
-    const feed = create({ version: "1.0" })
-      .ele("rss", { version: "2.0" })
-      .ele("channel")
-      .ele("title").txt("Digital PR Japan").up()
-      .ele("link").txt("https://digitalpr.jp").up()
-      .ele("description").txt("Digital PR Japan 最新記事").up();
+  await browser.close();
 
-    items.forEach(item => {
-      feed.ele("item")
-        .ele("title").txt(item.title).up()
-        .ele("link").txt(item.link).up()
-        .ele("guid").txt(item.link).up()
-        .ele("pubDate").txt(item.date).up()
-        .up();
-    });
+  // RSS生成
+  const feed = create({ version: "1.0" })
+    .ele("rss", { version: "2.0" })
+    .ele("channel")
+    .ele("title").txt("Digital PR Japan").up()
+    .ele("link").txt("https://digitalpr.jp").up()
+    .ele("description").txt("Digital PR Japan 最新記事").up();
 
-    const xml = feed.end({ prettyPrint: true });
-    fs.writeFileSync("feed-site4.xml", xml);
+  items.forEach(item => {
+    feed.ele("item")
+      .ele("title").txt(item.title).up()
+      .ele("link").txt(item.link).up()
+      .ele("guid").txt(item.link).up()
+      .ele("pubDate").txt(item.date).up()
+      .up();
+  });
 
-    console.log(`site4 完了: ${items.length}件`);
+  const xml = feed.end({ prettyPrint: true });
+  fs.writeFileSync("feed-site4.xml", xml);
 
-  } catch (err) {
-    console.error("スクレイピングエラー (site4):", err);
-    throw err; // ← process.exit(1) を使わない
-  } finally {
-    await browser.close(); // ← 成功時も失敗時も必ず Chrome を閉じる
-  }
+  console.log(`site4 完了: ${items.length}件`);
 }
 
-main();
+main().catch(err => {
+  console.error("スクレイピングエラー (site4):", err);
+  process.exit(1);
+});
