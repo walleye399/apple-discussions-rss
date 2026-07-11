@@ -2,9 +2,7 @@ import puppeteer from "puppeteer";
 import fs from "fs";
 import { create } from "xmlbuilder2";
 
-const MAX_RETRY = 3;
-
-async function scrapeOnce(attempt) {
+async function scrape() {
   const browser = await puppeteer.launch({
     headless: "new",
     args: ["--no-sandbox", "--disable-setuid-sandbox"]
@@ -18,7 +16,6 @@ async function scrapeOnce(attempt) {
       timeout: 90000
     });
 
-    // GitHub Actions の低速環境対策（他サイトと同じ）
     await new Promise(resolve => setTimeout(resolve, 20000));
 
     const items = await page.evaluate(() => {
@@ -28,6 +25,8 @@ async function scrapeOnce(attempt) {
         date: new Date().toUTCString()
       }));
     });
+
+    await browser.close();
 
     const feed = create({ version: "1.0" })
       .ele("rss", { version: "2.0" })
@@ -48,30 +47,20 @@ async function scrapeOnce(attempt) {
     const xml = feed.end({ prettyPrint: true });
     fs.writeFileSync("feed-site5.xml", xml);
 
-    console.log(`site5 完了: ${items.length}件 (試行 ${attempt} 回目)`);
-
-    await browser.close();
+    console.log(`site5 完了: ${items.length}件`);
     return true;
 
   } catch (err) {
-    console.error(`スクレイピングエラー (site5, 試行 ${attempt} 回目):`, err);
-    await browser.close();
-    return false;
+    console.error("site5 失敗（スキップします）:", err);
+    return false;  // ★ exit 1 を使わない
   }
 }
 
 async function main() {
-  for (let attempt = 1; attempt <= MAX_RETRY; attempt++) {
-    const ok = await scrapeOnce(attempt);
-    if (ok) return;
-    console.log(`site5 リトライ準備中… (${attempt}/${MAX_RETRY})`);
+  const ok = await scrape();
+  if (!ok) {
+    console.log("site5 をスキップしました");
   }
-
-  console.error(`site5 が ${MAX_RETRY} 回試行しても失敗しました`);
-  process.exit(1);
 }
 
-main().catch(err => {
-  console.error("site5 予期せぬエラー:", err);
-  process.exit(1);
-});
+main();
