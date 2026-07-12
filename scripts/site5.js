@@ -3,12 +3,14 @@ import fs from "fs";
 import { create } from "xmlbuilder2";
 
 async function scrape() {
-  const browser = await puppeteer.launch({
-    headless: "new",
-    args: ["--no-sandbox", "--disable-setuid-sandbox"]
-  });
+  let browser;
 
   try {
+    browser = await puppeteer.launch({
+      headless: "new",
+      args: ["--no-sandbox", "--disable-setuid-sandbox"]
+    });
+
     const page = await browser.newPage();
 
     await page.goto("https://press.portal-th.com/list", {
@@ -52,7 +54,15 @@ async function scrape() {
 
   } catch (err) {
     console.error("site5 失敗（スキップします）:", err);
-    return false;  // ★ exit 1 を使わない
+
+    // ★ ここが重要：ブラウザが残らないように強制終了
+    if (browser) {
+      try {
+        await browser.close();
+      } catch {}
+    }
+
+    return false;  // exit 0 扱い
   }
 }
 
