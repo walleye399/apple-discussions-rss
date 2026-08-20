@@ -10,16 +10,17 @@ async function main() {
 
   const page = await browser.newPage();
 
-  await page.goto("https://discussions.apple.com/community", {
+  // 新しい正しい URL
+  await page.goto("https://discussionsjapan.apple.com/browse", {
     waitUntil: "networkidle2",
     timeout: 120000
   });
 
-  // ページ描画待機（軽量）
-  await new Promise(resolve => setTimeout(resolve, 5000));
+  // SPA の描画待ち
+  await new Promise(resolve => setTimeout(resolve, 6000));
 
   const items = await page.evaluate(() => {
-    return Array.from(document.querySelectorAll("a.title")).map(a => ({
+    return Array.from(document.querySelectorAll('a[data-cy="cy-threadTitle"]')).map(a => ({
       title: a.innerText.trim(),
       link: a.href,
       date: new Date().toUTCString()
@@ -28,12 +29,12 @@ async function main() {
 
   await browser.close();
 
-  // RSS生成
+  // RSS生成（オリジナル構成）
   const feed = create({ version: "1.0" })
     .ele("rss", { version: "2.0" })
     .ele("channel")
       .ele("title").txt("Apple Discussions").up()
-      .ele("link").txt("https://discussions.apple.com/community").up()
+      .ele("link").txt("https://discussionsjapan.apple.com/browse").up()
       .ele("description").txt("Apple Discussions 最新記事").up();
 
   items.forEach(item => {
