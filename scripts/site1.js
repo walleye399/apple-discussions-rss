@@ -13,20 +13,25 @@ async function scrape() {
 
     const page = await browser.newPage();
 
-    // Apple Discussions は自動リロードが多いので waitUntil を弱める
-    await page.goto("https://discussions.apple.com/community", {
+    // Apple Discussions Japan 最新投稿ページ（正しい URL）
+    await page.goto("https://discussionsjapan.apple.com/browse?&sortBy=dateCreatedNewest", {
       waitUntil: "domcontentloaded",
       timeout: 120000
     });
 
-    // GitHub Actions の低速環境対策（site1 は特に不安定）
-    await new Promise(resolve => setTimeout(resolve, 8000));
+    // SPA の内部レンダリング待ち（短すぎると 0 件、長すぎると自動遷移）
+    await new Promise(resolve => setTimeout(resolve, 6000));
 
-    // evaluate 中にリロードされるのを防ぐため、DOM が安定するまで待つ
-    await page.waitForSelector("a.title", { timeout: 15000 }).catch(() => {});
+    // 投稿リンクが存在するか確認（存在しなければスキップ）
+    const exists = await page.$("a.thread-link");
+    if (!exists) {
+      console.error("site1: thread-link が見つからないためスキップします");
+      await browser.close().catch(() => {});
+      return false;
+    }
 
     const items = await page.evaluate(() => {
-      return Array.from(document.querySelectorAll("a.title")).map(a => ({
+      return Array.from(document.querySelectorAll("a.thread-link")).map(a => ({
         title: a.innerText.trim(),
         link: a.href,
         date: new Date().toUTCString()
@@ -39,9 +44,9 @@ async function scrape() {
     const feed = create({ version: "1.0" })
       .ele("rss", { version: "2.0" })
       .ele("channel")
-        .ele("title").txt("Apple Discussions").up()
-        .ele("link").txt("https://discussions.apple.com/community").up()
-        .ele("description").txt("Apple Discussions 最新記事").up();
+        .ele("title").txt("Apple Discussions Japan").up()
+        .ele("link").txt("https://discussionsjapan.apple.com").up()
+        .ele("description").txt("Apple Discussions Japan 最新投稿").up();
 
     items.forEach(item => {
       feed.ele("item")
@@ -61,12 +66,11 @@ async function scrape() {
   } catch (err) {
     console.error("site1 失敗（スキップします）:", err);
 
-    // ★ evaluate 中にリロードされても必ずブラウザを閉じる
     if (browser) {
       try { await browser.close(); } catch {}
     }
 
-    return false; // exit 1 を使わない → スキップ扱い
+    return false;
   }
 }
 
