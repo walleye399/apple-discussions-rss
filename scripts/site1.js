@@ -13,17 +13,17 @@ async function scrape() {
 
     const page = await browser.newPage();
 
-    // Apple Discussions Japan 最新投稿ページ（正しい URL）
+    // Apple Discussions Japan 最新投稿ページ
     await page.goto("https://discussionsjapan.apple.com/browse?&sortBy=dateCreatedNewest", {
       waitUntil: "domcontentloaded",
       timeout: 120000
     });
 
-    // SPA の内部レンダリング待ち（短すぎると 0 件、長すぎると自動遷移）
+    // SPA の内部レンダリング待ち
     await new Promise(resolve => setTimeout(resolve, 6000));
 
-    // 投稿リンクが存在するか確認（存在しなければスキップ）
-    const exists = await page.$("a.thread-link");
+    // 正しいセレクタ（2026年現在）
+    const exists = await page.$('a[data-test="thread-link"]');
     if (!exists) {
       console.error("site1: thread-link が見つからないためスキップします");
       await browser.close().catch(() => {});
@@ -31,7 +31,7 @@ async function scrape() {
     }
 
     const items = await page.evaluate(() => {
-      return Array.from(document.querySelectorAll("a.thread-link")).map(a => ({
+      return Array.from(document.querySelectorAll('a[data-test="thread-link"]')).map(a => ({
         title: a.innerText.trim(),
         link: a.href,
         date: new Date().toUTCString()
