@@ -11,15 +11,17 @@ async function main() {
   const page = await browser.newPage();
 
   await page.goto("https://www.poitan.jp", {
-    waitUntil: "networkidle2",
+    waitUntil: "domcontentloaded",
     timeout: 120000
   });
 
-  // 描画待ち（WordPressは軽いので短めでOK）
-  await new Promise(resolve => setTimeout(resolve, 3000));
+  // 記事一覧のDOMが出るまで確実に待つ
+  await page.waitForSelector("dl.clearfix h3 a", {
+    timeout: 60000
+  });
 
   const items = await page.evaluate(() => {
-    return Array.from(document.querySelectorAll("h3 a")).map(a => ({
+    return Array.from(document.querySelectorAll("dl.clearfix h3 a")).map(a => ({
       title: a.innerText.trim(),
       link: a.href,
       date: new Date().toUTCString()
