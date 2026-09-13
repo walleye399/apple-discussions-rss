@@ -10,17 +10,15 @@ async function main() {
 
   const page = await browser.newPage();
 
-  // ★ poitan.jp のトップページ
   await page.goto("https://www.poitan.jp", {
     waitUntil: "networkidle2",
     timeout: 120000
   });
 
-  // ページ描画待ち
   await new Promise(resolve => setTimeout(resolve, 5000));
 
   const items = await page.evaluate(() => {
-    return Array.from(document.querySelectorAll("a.entry-title-link")).map(a => ({
+    return Array.from(document.querySelectorAll("h2.entry-title a")).map(a => ({
       title: a.innerText.trim(),
       link: a.href,
       date: new Date().toUTCString()
@@ -29,7 +27,6 @@ async function main() {
 
   await browser.close();
 
-  // RSS生成（site1〜site8 と同じ形式）
   const feed = create({ version: "1.0" })
     .ele("rss", { version: "2.0" })
     .ele("channel")
