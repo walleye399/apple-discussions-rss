@@ -15,10 +15,11 @@ async function main() {
     timeout: 120000
   });
 
-  await new Promise(resolve => setTimeout(resolve, 5000));
+  // 描画待ち（WordPressは軽いので短めでOK）
+  await new Promise(resolve => setTimeout(resolve, 3000));
 
   const items = await page.evaluate(() => {
-    return Array.from(document.querySelectorAll("h2.entry-title a")).map(a => ({
+    return Array.from(document.querySelectorAll("h3 a")).map(a => ({
       title: a.innerText.trim(),
       link: a.href,
       date: new Date().toUTCString()
