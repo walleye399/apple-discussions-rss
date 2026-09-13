@@ -15,13 +15,17 @@ async function main() {
     timeout: 120000
   });
 
-  // 記事一覧のDOMが出るまで確実に待つ
-  await page.waitForSelector("dl.clearfix h3 a", {
-    timeout: 60000
-  });
+  // WordPress + 広告 + 画像読み込みのため長めに待つ
+  await new Promise(resolve => setTimeout(resolve, 8000));
 
   const items = await page.evaluate(() => {
-    return Array.from(document.querySelectorAll("dl.clearfix h3 a")).map(a => ({
+    const selector = "dl.clearfix h3 a";
+    const els = document.querySelectorAll(selector);
+
+    // デバッグ用：何件見つかったかログに出す
+    console.log("site9 セレクタ一致件数:", els.length);
+
+    return Array.from(els).map(a => ({
       title: a.innerText.trim(),
       link: a.href,
       date: new Date().toUTCString()
