@@ -1,7 +1,7 @@
 {
   "type": "module",
   "dependencies": {
-    "puppeteer": "^25.14.0",
+    "puppeteer": "^25.15.0",
     "xmlbuilder2": "^4.0.3"
   }
 }
